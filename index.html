@@ -256,7 +256,7 @@
                     placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                     autocomplete="off">
                 <p class="auth-help-text">
-                    Need a token? <a href="https://github.com/settings/tokens/new" target="_blank">Create one here</a> (no special scopes required for basic access)
+                    Need a token? <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer" aria-label="Create GitHub token (opens in new tab)">Create one here</a> (no special scopes required for basic access)
                 </p>
             </div>
 
@@ -342,6 +342,13 @@
                 return;
             }
 
+            // Basic format validation for GitHub tokens
+            const validTokenPatterns = /^(ghp_|github_pat_|gho_|ghu_|ghs_|ghr_)/;
+            if (!validTokenPatterns.test(token)) {
+                showAuthError('Invalid token format. GitHub tokens start with ghp_, github_pat_, gho_, ghu_, ghs_, or ghr_.');
+                return;
+            }
+
             // Disable button and show loading state
             authButton.textContent = 'Authenticating...';
             authButton.disabled = true;
@@ -420,10 +427,10 @@
                     showAuthOverlay();
                 }
             } catch (error) {
-                // On network error, assume token might be valid (offline scenario)
-                // but show a warning in console
+                // On network error, show auth overlay for security (require re-authentication)
                 console.warn('Could not validate token on page load:', error.message);
-                hideAuthOverlay();
+                sessionStorage.removeItem(AUTH_STORAGE_KEY);
+                showAuthOverlay();
             }
         }
 
