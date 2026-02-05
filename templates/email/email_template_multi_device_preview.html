@@ -189,6 +189,12 @@
       margin-top:8px;
       line-height:1.35;
     }
+    .section-description{
+      font-size:11px;
+      color: rgba(255,255,255,.65);
+      margin: -6px 0 10px 0;
+      line-height:1.35;
+    }
 
     .toggle{
       display:flex;
@@ -482,14 +488,14 @@
 
         <div class="group">
           <h3>Export</h3>
-          <p style="font-size:11px; color: rgba(255,255,255,.65); margin: -6px 0 10px 0;">Snapshot of device mockup</p>
+          <p class="section-description">Snapshot of device mockup</p>
           
           <div class="toggle">
             <span>Include background</span>
             <input id="exportWithBg" type="checkbox" />
           </div>
           
-          <div class="hint" style="margin-top:10px; margin-bottom:10px">
+          <div class="hint">
             Export the current device mockup with the template preview. Default exports transparent background.
           </div>
 
@@ -499,7 +505,7 @@
           <label>Export as PDF</label>
           <button id="exportPdf" type="button">📄 Export as PDF</button>
 
-          <div class="hint" style="margin-top:10px">
+          <div class="hint">
             Note: Office formats (DOCX, PPTX) require server-side conversion. Export as PNG and insert into your Office document manually.
           </div>
         </div>
@@ -964,8 +970,7 @@
         backgroundColor: exportWithBg ? '#0b1220' : null,
         scale: 2, // Higher quality
         logging: false,
-        useCORS: true,
-        allowTaint: true
+        useCORS: true
       });
 
       const filename = generateExportFilename('png');
@@ -1011,8 +1016,7 @@
         backgroundColor: exportWithBg ? '#0b1220' : null,
         scale: 2,
         logging: false,
-        useCORS: true,
-        allowTaint: true
+        useCORS: true
       });
 
       const imgData = canvas.toDataURL('image/png');
