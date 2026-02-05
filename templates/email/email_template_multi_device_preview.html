@@ -986,7 +986,9 @@
         a.href = url;
         a.download = filename;
         a.click();
-        URL.revokeObjectURL(url);
+        
+        // Revoke after a short delay to ensure download starts
+        setTimeout(() => URL.revokeObjectURL(url), 100);
 
         btn.textContent = oldText;
         btn.disabled = false;
