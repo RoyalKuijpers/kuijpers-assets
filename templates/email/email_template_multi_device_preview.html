@@ -504,10 +504,10 @@
             Export the current device mockup with the template preview. Default exports transparent background.
           </div>
 
-          <label>Export as Image</label>
+          <h4 style="margin:14px 0 6px; font-size:12px; font-weight:600; color: rgba(255,255,255,.84);">Export as Image</h4>
           <button id="exportPng" type="button">📸 Export as PNG</button>
 
-          <label>Export as PDF</label>
+          <h4 style="margin:14px 0 6px; font-size:12px; font-weight:600; color: rgba(255,255,255,.84);">Export as PDF</h4>
           <button id="exportPdf" type="button">📄 Export as PDF</button>
 
           <div class="hint">
@@ -946,8 +946,8 @@
 
   // Helper function to generate sanitized filename for export
   function generateExportFilename(extension) {
-    const templateName = (templateSelect.selectedOptions[0]?.textContent || 'template').trim();
-    const deviceType = (deviceSelect.selectedOptions[0]?.textContent || 'device').trim();
+    const templateName = (templateSelect.selectedOptions[0]?.textContent || 'email_template').trim();
+    const deviceType = (deviceSelect.selectedOptions[0]?.textContent || 'mockup_device').trim();
     const sanitizedTemplate = templateName.replace(/[^a-z0-9]/gi, '_');
     const sanitizedDevice = deviceType.replace(/[^a-z0-9]/gi, '_');
     return `${sanitizedTemplate}_${sanitizedDevice}.${extension}`;
