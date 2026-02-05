@@ -30,6 +30,7 @@ Zodra **GitHub Pages** is ingeschakeld voor deze repo, zijn de bestanden direct 
 - Logo: `https://royalkuijpers.github.io/assets/images/logos/kuijpers-logo.png`
 - QR-code: `https://royalkuijpers.github.io/assets/images/qr-codes/QR-Pasaanvraag.png`
 - Flow dashboard: `https://royalkuijpers.github.io/assets/KVA-QuickFlowLinker.html`
+- Multi-device preview: 'https://royalkuijpers.github.io/assets/templates/email/email_template_multi_device_preview.html'
 
 Let op: bestandsnamen met spaties of speciale tekens moeten URL-encoded worden (bijv. spatie → `%20`).
 
