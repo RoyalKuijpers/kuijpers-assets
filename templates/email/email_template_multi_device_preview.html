@@ -603,8 +603,7 @@
           // Filter out preview HTML files
           const isPreviewFile = item.name.toLowerCase().includes('preview') || 
                                 item.name.toLowerCase().includes('_preview') ||
-                                item.name === 'email_template_multi_device_preview.html' ||
-                                item.name === 'email_template_phone_preview.html';
+                                item.name === 'email_template_multi_device_preview.html';
           
           if(!isPreviewFile){
             const rel = item.path;
@@ -932,6 +931,15 @@
     return { warnings, tips };
   }
 
+  // Helper function to generate sanitized filename for export
+  function generateExportFilename(extension) {
+    const templateName = templateSelect.selectedOptions[0]?.textContent || 'template';
+    const deviceType = deviceSelect.selectedOptions[0]?.textContent || 'device';
+    const sanitizedTemplate = templateName.replace(/[^a-z0-9]/gi, '_');
+    const sanitizedDevice = deviceType.replace(/[^a-z0-9]/gi, '_');
+    return `${sanitizedTemplate}_${sanitizedDevice}.${extension}`;
+  }
+
   // Export functionality
   async function exportDeviceAsPNG() {
     const exportWithBg = document.getElementById('exportWithBg').checked;
@@ -948,7 +956,7 @@
       btn.textContent = 'Exporting...';
       btn.disabled = true;
 
-      // Wait a bit for any animations to settle
+      // Wait for CSS animations/transitions to complete before capturing
       await new Promise(resolve => setTimeout(resolve, 300));
 
       const canvas = await html2canvas(deviceWrap, {
@@ -959,9 +967,7 @@
         allowTaint: true
       });
 
-      const templateName = templateSelect.selectedOptions[0]?.textContent || 'template';
-      const deviceType = deviceSelect.selectedOptions[0]?.textContent || 'device';
-      const filename = `${templateName.replace(/[^a-z0-9]/gi, '_')}_${deviceType.replace(/[^a-z0-9]/gi, '_')}.png`;
+      const filename = generateExportFilename('png');
 
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
@@ -998,7 +1004,7 @@
       btn.textContent = 'Exporting...';
       btn.disabled = true;
 
-      // Wait a bit for any animations to settle
+      // Wait for CSS animations/transitions to complete before capturing
       await new Promise(resolve => setTimeout(resolve, 300));
 
       const canvas = await html2canvas(deviceWrap, {
@@ -1026,9 +1032,7 @@
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
-      const templateName = templateSelect.selectedOptions[0]?.textContent || 'template';
-      const deviceType = deviceSelect.selectedOptions[0]?.textContent || 'device';
-      const filename = `${templateName.replace(/[^a-z0-9]/gi, '_')}_${deviceType.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+      const filename = generateExportFilename('pdf');
 
       pdf.save(filename);
 
