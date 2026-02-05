@@ -12,6 +12,12 @@
   <!-- Device Mockup (phone/tablet/laptop) -->
   <script defer src="https://cdn.jsdelivr.net/gh/DevManSam777/device-mockup@main/device-mockup.js"></script>
 
+  <!-- html2canvas for export to image -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- jsPDF for export to PDF -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
   <style>
     :root{
       --panel-bg: rgba(255,255,255,.12);
@@ -283,14 +289,36 @@
       height: calc(var(--viewport-h) * 1px);
       background: #ffffff;
       border-radius: 18px;
-      overflow:hidden;
+      overflow:auto;
+      position: relative;
     }
     .tel-viewport iframe{
       width:100%;
-      height:100%;
+      min-height:100%;
       border:0;
       display:block;
       background:#fff;
+    }
+
+    button{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: white;
+      outline:none;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:600;
+      transition: all 0.2s ease;
+    }
+    button:hover{
+      background: rgba(255,255,255,.16);
+      border-color: rgba(255,255,255,.28);
+    }
+    button:active{
+      transform: scale(0.98);
     }
 
     @media (max-width: 980px){
@@ -451,6 +479,29 @@
           <h3>Responsive checks</h3>
           <div id="checksBox"></div>
         </div>
+
+        <div class="group">
+          <h3>Export <small>snapshot of device mockup</small></h3>
+          
+          <div class="toggle">
+            <span>Include background</span>
+            <input id="exportWithBg" type="checkbox" />
+          </div>
+          
+          <div class="hint" style="margin-top:10px; margin-bottom:10px">
+            Export the current device mockup with the template preview. Default exports transparent background.
+          </div>
+
+          <label>Export as Image</label>
+          <button id="exportPng" type="button">📸 Export as PNG</button>
+
+          <label>Export as PDF</label>
+          <button id="exportPdf" type="button">📄 Export as PDF</button>
+
+          <div class="hint" style="margin-top:10px">
+            Note: Office formats (DOCX, PPTX) require server-side conversion. Export as PNG and insert into your Office document manually.
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -549,14 +600,22 @@
         seen.add(item.sha);
 
         if(item.type === 'file' && item.name.toLowerCase().endsWith('.html')){
-          const rel = item.path;
-          const pagesUrl = base + encodePath(rel);
-          results.push({
-            name: item.name,
-            path: rel,
-            pagesUrl,
-            downloadUrl: item.download_url,
-          });
+          // Filter out preview HTML files
+          const isPreviewFile = item.name.toLowerCase().includes('preview') || 
+                                item.name.toLowerCase().includes('_preview') ||
+                                item.name === 'email_template_multi_device_preview.html' ||
+                                item.name === 'email_template_phone_preview.html';
+          
+          if(!isPreviewFile){
+            const rel = item.path;
+            const pagesUrl = base + encodePath(rel);
+            results.push({
+              name: item.name,
+              path: rel,
+              pagesUrl,
+              downloadUrl: item.download_url,
+            });
+          }
         } else if(item.type === 'dir'){
           await walk(item.url, depth+1);
         }
@@ -873,6 +932,117 @@
     return { warnings, tips };
   }
 
+  // Export functionality
+  async function exportDeviceAsPNG() {
+    const exportWithBg = document.getElementById('exportWithBg').checked;
+    const deviceWrap = deviceHost;
+    
+    if (!deviceWrap || !deviceWrap.children.length) {
+      alert('No device mockup to export. Please load a template first.');
+      return;
+    }
+
+    try {
+      const btn = document.getElementById('exportPng');
+      const oldText = btn.textContent;
+      btn.textContent = 'Exporting...';
+      btn.disabled = true;
+
+      // Wait a bit for any animations to settle
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const canvas = await html2canvas(deviceWrap, {
+        backgroundColor: exportWithBg ? '#0b1220' : null,
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const templateName = templateSelect.selectedOptions[0]?.textContent || 'template';
+      const deviceType = deviceSelect.selectedOptions[0]?.textContent || 'device';
+      const filename = `${templateName.replace(/[^a-z0-9]/gi, '_')}_${deviceType.replace(/[^a-z0-9]/gi, '_')}.png`;
+
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        btn.textContent = oldText;
+        btn.disabled = false;
+      });
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed: ' + error.message);
+      const btn = document.getElementById('exportPng');
+      btn.textContent = '📸 Export as PNG';
+      btn.disabled = false;
+    }
+  }
+
+  async function exportDeviceAsPDF() {
+    const exportWithBg = document.getElementById('exportWithBg').checked;
+    const deviceWrap = deviceHost;
+    
+    if (!deviceWrap || !deviceWrap.children.length) {
+      alert('No device mockup to export. Please load a template first.');
+      return;
+    }
+
+    try {
+      const btn = document.getElementById('exportPdf');
+      const oldText = btn.textContent;
+      btn.textContent = 'Exporting...';
+      btn.disabled = true;
+
+      // Wait a bit for any animations to settle
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const canvas = await html2canvas(deviceWrap, {
+        backgroundColor: exportWithBg ? '#0b1220' : null,
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      // Calculate PDF dimensions (A4 or custom based on image aspect ratio)
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+      const templateName = templateSelect.selectedOptions[0]?.textContent || 'template';
+      const deviceType = deviceSelect.selectedOptions[0]?.textContent || 'device';
+      const filename = `${templateName.replace(/[^a-z0-9]/gi, '_')}_${deviceType.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+
+      pdf.save(filename);
+
+      btn.textContent = oldText;
+      btn.disabled = false;
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed: ' + error.message);
+      const btn = document.getElementById('exportPdf');
+      btn.textContent = '📄 Export as PDF';
+      btn.disabled = false;
+    }
+  }
+
   async function init(){
     fillViewportPresets();
     fillDmSizePresets();
@@ -950,6 +1120,10 @@
       }
     });
   });
+
+  // Export controls
+  document.getElementById('exportPng').addEventListener('click', exportDeviceAsPNG);
+  document.getElementById('exportPdf').addEventListener('click', exportDeviceAsPDF);
 
   init();
 })();
